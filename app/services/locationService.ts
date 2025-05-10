@@ -1,3 +1,5 @@
+'use server'
+
 import { api } from './api';
 
 interface LocationData {
@@ -6,16 +8,31 @@ interface LocationData {
 }
 
 export async function getAllLocations() {
-  const response = await api.get('/location');
-  return response.data;
+  try {
+    const response = await api.get('/location');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    throw error;
+  }
 }
 
 export async function postLocation(data: LocationData) {
-  const response = await api.post('/location', data);
-  return response.data;
+  try {
+    const response = await api.post('/location', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error posting location:', error);
+    throw error;
+  }
 }
 
 export async function getRandomLocation() {
-  const response = await api.get('/location-random');
-  return response.data;
+  try {
+    const response = await api.get('/location-random');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching random location:', error);
+    throw error;
+  }
 }
