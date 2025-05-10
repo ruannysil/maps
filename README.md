@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌍 Projeto de Rastreamento com Mapas - Next.js + Leaflet
+Este é um site de rastreamento em tempo real desenvolvido com Next.js e o framework de mapas Leaflet, que consome uma API externa para exibir a localização de pessoas ou dispositivos diretamente no mapa.
 
-## Getting Started
+Ideal para aplicações como:
+🔹 Monitoramento de frotas
+🔹 Rastreamento de usuários ativos
+🔹 Visualização de localização com status em tempo real
 
-First, run the development server:
+🚀 Como começar
+Clone o repositório e instale as dependências:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Instalar as dependecias
+npm install
+# ou
+yarn install
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Inicie o servidor de desenvolvimento:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+npm run dev ou yarn dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+incializar em movo desenvolvedor
+#
+Abra http://localhost:3000 no seu navegador para visualizar o projeto.
 
-## Learn More
+🗺️ Funcionalidades
+Exibição de um mapa interativo com Leaflet.
 
-To learn more about Next.js, take a look at the following resources:
+Marcadores personalizados para cada pessoa ou dispositivo.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Informações como status e última requisição exibidas ao clicar nos marcadores.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Centralização automática no primeiro usuário válido ou em uma localização padrão.
 
+Estilização moderna com Tailwind CSS.
+
+📁 Estrutura do Projeto
+app/page.tsx: Página principal com chamada para a API.
+
+components/Map.tsx: Componente de mapa que renderiza os marcadores com base nos dados.
+
+lib/api.ts: Requisições para buscar os dados de rastreamento.
+
+📦 Tecnologias Utilizadas
+Next.js 14+
+
+React
+
+Leaflet
+
+React Leaflet
+
+Tailwind CSS
+
+📡 API
+O projeto consome uma API que retorna uma lista de objetos com as seguintes informações:
+
+ts
+Copiar
+Editar
+{
+  latitude: number,
+  longitude: number,
+  status: string,
+  ultimaRequisicao: string
+}
+Esses dados são transformados em marcadores visuais no mapa.
+
+📦 Deploy
+Recomendamos o uso do Vercel para o deploy da aplicação, pois oferece integração nativa com Next.js.
+
+Leia mais sobre o deploy aqui:
+📄 Documentação de Deploy do Next.js
+
+📷 Prévia
+![image](https://github.com/user-attachments/assets/d13afbf1-b298-409e-bde5-7dc43d073405)
 ## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
