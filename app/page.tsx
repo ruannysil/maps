@@ -4,11 +4,11 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useState } from 'react';
 import { getAllLocations, postLocation, getRandomLocation, } from './services/locationService';
 import toast from 'react-hot-toast';
-import Buttons from './components/Buttons';
-import dynamic from 'next/dynamic';
+import Buttons from './_components/Buttons';
+import ButtonsColorMaps from './_components/ButtonsColorMaps';
+import Map from './_components/Map';
 
-
-interface Person {
+export interface Person {
   id: number;
   name: string;
   latitude: number;
@@ -21,12 +21,6 @@ export interface MapsProps {
   people: { latitude: number; longitude: number; status: string; ultimaRequisicao: string }[]
   center: { latitude: number; longitude: number },
 }
-const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
-
-
 
 const tileLayers = {
   default: {
@@ -49,11 +43,9 @@ const tileLayers = {
 
 type MapStyle = keyof typeof tileLayers;
 
-
 export default function Home() {
   const [mapView, setMapView] = useState<MapStyle>('default')
   const [people, setPeople] = useState<Person[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
   const [dateTime, setDateTime] = useState(new Date());
@@ -188,7 +180,6 @@ export default function Home() {
   }, [filteredPeople]);
 
 
-
   const handleShowInfo = () => {
     setShowInfo(!showInfo);
   };
@@ -200,36 +191,20 @@ export default function Home() {
         <h2 className="text-2xl font-bold">GPS EYZE</h2>
         <p className="text-sm text-gray-200 mb-5">Controle absoluto na ponta dos dedos.</p>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleChangeStyle('dark')}
-            className={`p-1 border-2 rounded-md ${mapView === 'dark' ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}
-          >
-            Modo Escuro
-          </button>
-          <button
-            onClick={() => handleChangeStyle('light')}
-            className={`p-3 border-2 rounded-md ${mapView === 'light' ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}
-          >
-            Claro
-          </button>
-          <button
-            onClick={() => handleChangeStyle('smoothDark')}
-            className={`p-3 border-2 rounded-md ${mapView === 'smoothDark' ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}
-          >
-            Suave
-          </button>
+        <div className='flex flex-col items-start gap-5'>
+          <h1 className='font-bold'>Alterar cor do Map:</h1>
+          <ButtonsColorMaps handleChangeStyle={handleChangeStyle} mapView={mapView} />
+          <div className="flex flex-wrap gap-2 mb-4 justify-center">
+
+            <Buttons label="Buscar Localização Aleatória" onClick={() => handleLactionRandom()} className='bg-blue-500 px-4 py-2 text-white rounded-md shadow-md' />
+
+            {/* <Buttons label="Buscar Localização Aleatória" onClick={() => fetchLocations(true)} className='bg-purple-500 px-4 py-2 text-white rounded-md shadow-md' /> */}
+
+            <Buttons label="Enviar Minha Localização" onClick={postMyLocation} className='bg-pink-500 px-4 py-2 text-white rounded-md shadow-md' />
+
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4 justify-center">
-
-          <Buttons label="Buscar Localização Aleatória" onClick={() => handleLactionRandom()} className='bg-blue-500 px-4 py-2 text-white rounded-md shadow-md' />
-
-          {/* <Buttons label="Buscar Localização Aleatória" onClick={() => fetchLocations(true)} className='bg-purple-500 px-4 py-2 text-white rounded-md shadow-md' /> */}
-
-          <Buttons label="Enviar Minha Localização" onClick={postMyLocation} className='bg-pink-500 px-4 py-2 text-white rounded-md shadow-md' />
-
-        </div>
 
         {showInfo && (
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6'>
@@ -252,48 +227,7 @@ export default function Home() {
           </div>
         )}
 
-        <MapContainer
-          center={[center.latitude, center.longitude]}
-          zoom={5}
-          scrollWheelZoom={true}
-          className="h-[500px] rounded-xl shadow-md"
-        >
-          <TileLayer
-            attribution={tileLayers[mapView].attribution}
-            url={tileLayers[mapView].url}
-          />
-
-          {people
-            .filter(person =>
-              typeof person.latitude === 'number' &&
-              typeof person.longitude === 'number' &&
-              !isNaN(person.latitude) &&
-              !isNaN(person.longitude)
-            )
-            .map((person, index) => (
-              <Marker key={index} position={[person.latitude, person.longitude]}>
-                <Popup>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex items-center gap-2">
-                      <strong>{person.name}</strong>
-                      <div className="flex items-center gap-1">
-                        <strong
-                          className={`h-2.5 w-2.5 rounded-full ${person.status === 'online' ? 'bg-green-500' : 'bg-red-500'
-                            }`}
-                        />
-                        <strong className="capitalize">{person.status}</strong>
-                      </div>
-                    </div>
-
-                    <strong>
-                      Último acesso: <br />
-                      {new Date(person.ultimaRequisicao).toLocaleString()}
-                    </strong>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-        </MapContainer>
+       <Map people={people as Person[]} center={center} mapView={mapView} tileLayers={tileLayers} />
       </div>
     </div>
   );
