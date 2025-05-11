@@ -2,13 +2,13 @@
 
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useState } from 'react';
-import { getAllLocations, postLocation, getRandomLocation, } from './services/locationService';
+import { getAllLocations } from './services/locationService';
 import toast from 'react-hot-toast';
 import Buttons from './_components/Buttons';
 import ButtonsColorMaps from './_components/ButtonsColorMaps';
 import Map from './_components/Map';
 
-export interface Person {
+export interface LocationUser {
   id: number;
   name: string;
   latitude: number;
@@ -45,11 +45,10 @@ type MapStyle = keyof typeof tileLayers;
 
 export default function Home() {
   const [mapView, setMapView] = useState<MapStyle>('default')
-  const [people, setPeople] = useState<Person[]>([]);
-  const [search, setSearch] = useState('');
+  const [locationUser, setLocationUser] = useState<LocationUser[]>([]);
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
   const [dateTime, setDateTime] = useState(new Date());
-  const [showInfo, setShowInfo] = useState(false);
+  const [showInfo, setShowInfo] = useState(true);
 
   useEffect(() => {
     const savedStyle = localStorage.getItem('mapStyle') as MapStyle | null;
@@ -97,49 +96,18 @@ export default function Home() {
     second: '2-digit',
   });
 
-  const fetchLocations = async (random: boolean = false) => {
+  const fetchLocations = async () => {
     try {
-      const data = random ? await getRandomLocation() : await getAllLocations();
+      const data = await getAllLocations();
       if (Array.isArray(data)) {
-        setPeople(data);
+        setLocationUser(data);
       } else if (data) {
-        setPeople([data]);
+        setLocationUser([data]);
       }
-
-    } catch (error) {
-      console.error('Erro ao buscar localizações:', error);
+    } catch (err) {
+      console.log("Error")
     }
-  };
-
-  const postMyLocation = async () => {
-    if (typeof window !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            await toast.promise(
-              postLocation({ latitude, longitude }),
-              {
-                loading: 'Saving...',
-                success: <b>Minha Localização</b>,
-                error: <b>Could not save.</b>,
-              }
-            );
-            fetchLocations();
-          } catch (err) {
-            console.error(err);
-            alert('Erro ao enviar localização.');
-          }
-        },
-        (error) => {
-          console.error(error);
-          alert('Erro ao obter sua localização.');
-        }
-      );
-    } else {
-      alert('Geolocalização não suportada pelo navegador.');
-    }
-  };
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -147,42 +115,11 @@ export default function Home() {
     }
   }, []);
 
-
-  const handleLactionRandom = async () => {
-    await toast.promise(
-      fetchLocations(true),
-      {
-        loading: 'Saving...',
-        success: <b>Localização Aleatória!</b>,
-        error: <b>Could not save.</b>,
-      }
-    )
-  }
-
-  const filteredPeople = useMemo(() => {
-    return people.filter((person) => {
-      const matchStatus = statusFilter === 'all' || person.status === statusFilter;
-      const matchName = person?.name?.toLowerCase().includes(search.toLowerCase());
-      return person.latitude !== 0 && person.longitude !== 0 && matchStatus && matchName;
-    });
-  }, [people, search, statusFilter]);
-
-  const center = useMemo(() => {
-    return filteredPeople.length > 0
-      ? {
-        latitude: filteredPeople[0].latitude,
-        longitude: filteredPeople[0].longitude,
-      }
-      : {
-        latitude: -14.235,
-        longitude: -51.925,
-      };
-  }, [filteredPeople]);
-
-
   const handleShowInfo = () => {
     setShowInfo(!showInfo);
   };
+
+  console.log('informcaoes:', locationUser)
 
   return (
     <div className="flex-1 max-w-6xl items-center justify-center mx-auto px-4">
@@ -193,25 +130,21 @@ export default function Home() {
 
         <div className='flex flex-col items-start gap-5'>
           <h1 className='font-bold'>Alterar cor do Map:</h1>
-          <ButtonsColorMaps handleChangeStyle={handleChangeStyle} mapView={mapView} />
-          <div className="flex flex-wrap gap-2 mb-4 justify-center">
-
-            <Buttons label="Buscar Localização Aleatória" onClick={() => handleLactionRandom()} className='bg-blue-500 px-4 py-2 text-white rounded-md shadow-md' />
-
-            {/* <Buttons label="Buscar Localização Aleatória" onClick={() => fetchLocations(true)} className='bg-purple-500 px-4 py-2 text-white rounded-md shadow-md' /> */}
-
-            <Buttons label="Enviar Minha Localização" onClick={postMyLocation} className='bg-pink-500 px-4 py-2 text-white rounded-md shadow-md' />
-
+          <div className='flex justify-between w-full'>
+            <ButtonsColorMaps handleChangeStyle={handleChangeStyle} mapView={mapView} />
+            <button onClick={handleShowInfo} className='shadow-lg shadow-white/50 bg-white text-black border-none px-3 py-2 border-2 rounded-md cursor-pointer font-bold'>
+              ocultar info
+            </button>
           </div>
         </div>
 
 
         {showInfo && (
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6'>
-            {filteredPeople.map((person, index) => (
+            {locationUser.map((person, index) => (
               <div key={index} className="flex w-full">
                 <div className="space-y-1 bg-gray-800 p-3 rounded-md w-full text-start">
-                  {/* <div className="font-bold">{person.name}</div> */}
+                  <div className="font-bold">{person.name}</div>
                   <div>Lat: {person.latitude}</div>
                   <div>Lng: {person.longitude}</div>
                   <div className="flex justify-start items-center gap-2">
@@ -227,9 +160,13 @@ export default function Home() {
           </div>
         )}
 
-       <Map people={people as Person[]} center={center} mapView={mapView} tileLayers={tileLayers} />
+        <Map
+          location={locationUser}
+          mapView={mapView}
+          tileLayers={tileLayers}
+          center={locationUser[1] || { latitude: 0, longitude: 0 }}
+        />
       </div>
     </div>
   );
 }
-
