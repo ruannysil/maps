@@ -1,12 +1,11 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useMemo, useState } from 'react';
-import { getAllLocations } from './services/locationService';
+import { useEffect, useState } from 'react';
+import { getAllLocations, postLocation } from './services/locationService';
 import toast from 'react-hot-toast';
-import Buttons from './_components/Buttons';
-import ButtonsColorMaps from './_components/ButtonsColorMaps';
 import Map from './_components/Map';
+import axios from 'axios';
 
 export interface LocationUser {
   id: number;
@@ -20,6 +19,14 @@ export interface LocationUser {
 export interface MapsProps {
   people: { latitude: number; longitude: number; status: string; ultimaRequisicao: string }[]
   center: { latitude: number; longitude: number },
+}
+
+interface LocationSearch {
+  address: string;
+  latitude: number;
+  longitude: number;
+  status: string;
+  ultimaRequisicao: string;
 }
 
 const tileLayers = {
@@ -46,9 +53,8 @@ type MapStyle = keyof typeof tileLayers;
 export default function Home() {
   const [mapView, setMapView] = useState<MapStyle>('default')
   const [locationUser, setLocationUser] = useState<LocationUser[]>([]);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
-  const [dateTime, setDateTime] = useState(new Date());
   const [showInfo, setShowInfo] = useState(true);
+  const [address, setAddress] = useState('');
 
   useEffect(() => {
     const savedStyle = localStorage.getItem('mapStyle') as MapStyle | null;
@@ -71,30 +77,43 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDateTime(new Date());
-    }, 1000);
+  const getCoodenationFromAddress = async (address: string) => {
+    try {
+      const res = await axios.get(` https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+      const data = await res.data;
 
-    return () => clearInterval(interval);
-  }, []);
+      console.log('informacoes recebida', data)
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        return { lat: parseFloat(lat), lng: parseFloat(lon) };
+      } else {
+        throw new Error("Endereço não encontrado");
+      }
 
-  const handleChangeStyle = (style: any) => {
-    setMapView(style);
-    localStorage.setItem('mapStyle', style);
-  };
+    } catch (err) {
+      console.error("Erro", err)
+    }
+  }
 
-  const formatedDate = dateTime.toLocaleString('pt-BR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
+  const handleSearch = async () => {
+    try {
+      const coords = await getCoodenationFromAddress(address);
+      if (!coords) return;
 
-  const formatedTime = dateTime.toLocaleString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
+      const locationData: LocationSearch = {
+        address: address as string,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        status: 'online',
+        ultimaRequisicao: new Date().toISOString(),
+      }
+      await postLocation(locationData);
+      toast.success('Localização enviada com sucesso!');
+      fetchLocations();
+    } catch (err) {
+      console.error('Erro ao enviar seus dados', err)
+    }
+  }
 
   const fetchLocations = async () => {
     try {
@@ -115,32 +134,32 @@ export default function Home() {
     }
   }, []);
 
-  const handleShowInfo = () => {
-    setShowInfo(!showInfo);
-  };
-
   console.log('informcaoes:', locationUser)
 
   return (
     <div className="flex-1 max-w-6xl items-center justify-center mx-auto px-4">
-      <h1 className='font-bold text-xl flex justify-end mb-10 mt-2'>{formatedTime}</h1>
-      <div className="text-center ">
-        <h2 className="text-2xl font-bold">GPS EYZE</h2>
-        <p className="text-sm text-gray-200 mb-5">Controle absoluto na ponta dos dedos.</p>
 
-        <div className='flex flex-col items-start gap-5'>
-          <h1 className='font-bold'>Alterar cor do Map:</h1>
-          <div className='flex justify-between w-full'>
-            <ButtonsColorMaps handleChangeStyle={handleChangeStyle} mapView={mapView} />
-            <button onClick={handleShowInfo} className='shadow-lg shadow-white/50 bg-white text-black border-none px-3 py-2 border-2 rounded-md cursor-pointer font-bold'>
-              ocultar info
-            </button>
-          </div>
+      <div className="text-center ">
+        <div className="flex gap-2 items-center justify-between my-6">
+          <input
+            type="text"
+            placeholder="Digite o endereço"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="border px-4 w-full py-2 rounded-md w-80"
+          />
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          >
+            Buscar
+          </button>
         </div>
 
 
+
         {showInfo && (
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-6'>
             {locationUser.map((person, index) => (
               <div key={index} className="flex w-full">
                 <div className="space-y-1 bg-gray-800 p-3 rounded-md w-full text-start">

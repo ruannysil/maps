@@ -2,7 +2,7 @@
 
 import { api } from './api';
 
-interface LocationData {
+export interface LocationData {
   latitude: number;
   longitude: number;
 }
