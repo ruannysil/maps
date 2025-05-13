@@ -19,14 +19,6 @@ export interface MapsProps {
   center: { latitude: number; longitude: number },
 }
 
-interface LocationSearch {
-  address: string;
-  latitude: number;
-  longitude: number;
-  status: string;
-  ultimaRequisicao: string;
-}
-
 const tileLayers = {
   default: {
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
