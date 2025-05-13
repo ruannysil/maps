@@ -29,7 +29,7 @@ export default function Map({ center, location, tileLayers, mapView }: MapProps)
       // maxZoom={15}
       minZoom={3}
       scrollWheelZoom={true}
-      className="h-[500px] rounded-xl shadow-md"
+      className="md:h-[800px] h-[600px] rounded-xl shadow-md"
     >
       <TileLayer
         attribution={tileLayers[mapView].attribution}

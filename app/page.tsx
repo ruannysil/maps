@@ -53,8 +53,6 @@ type MapStyle = keyof typeof tileLayers;
 export default function Home() {
   const [mapView, setMapView] = useState<MapStyle>('default')
   const [locationUser, setLocationUser] = useState<LocationUser[]>([]);
-  const [showInfo, setShowInfo] = useState(true);
-  const [address, setAddress] = useState('');
 
   useEffect(() => {
     const savedStyle = localStorage.getItem('mapStyle') as MapStyle | null;
@@ -77,43 +75,8 @@ export default function Home() {
     }
   }, []);
 
-  const getCoodenationFromAddress = async (address: string) => {
-    try {
-      const res = await axios.get(` https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
-      const data = await res.data;
 
-      console.log('informacoes recebida', data)
-      if (data.length > 0) {
-        const { lat, lon } = data[0];
-        return { lat: parseFloat(lat), lng: parseFloat(lon) };
-      } else {
-        throw new Error("Endereço não encontrado");
-      }
 
-    } catch (err) {
-      console.error("Erro", err)
-    }
-  }
-
-  const handleSearch = async () => {
-    try {
-      const coords = await getCoodenationFromAddress(address);
-      if (!coords) return;
-
-      const locationData: LocationSearch = {
-        address: address as string,
-        latitude: coords.lat,
-        longitude: coords.lng,
-        status: 'online',
-        ultimaRequisicao: new Date().toISOString(),
-      }
-      await postLocation(locationData);
-      toast.success('Localização enviada com sucesso!');
-      fetchLocations();
-    } catch (err) {
-      console.error('Erro ao enviar seus dados', err)
-    }
-  }
 
   const fetchLocations = async () => {
     try {
@@ -140,44 +103,28 @@ export default function Home() {
     <div className="flex-1 max-w-6xl items-center justify-center mx-auto px-4">
 
       <div className="text-center ">
-        <div className="flex gap-2 items-center justify-between my-6">
-          <input
-            type="text"
-            placeholder="Digite o endereço"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="border px-4 w-full py-2 rounded-md w-80"
-          />
-          <button
-            onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-          >
-            Buscar
-          </button>
-        </div>
 
 
 
-        {showInfo && (
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-6'>
-            {locationUser.map((person, index) => (
-              <div key={index} className="flex w-full">
-                <div className="space-y-1 bg-gray-800 p-3 rounded-md w-full text-start">
-                  <div className="font-bold">{person.name}</div>
-                  <div>Lat: {person.latitude}</div>
-                  <div>Lng: {person.longitude}</div>
-                  <div className="flex justify-start items-center gap-2">
-                    <span className={`h-3 w-3 rounded-full ${person.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`} />
-                    {person.status}
-                  </div>
-                  <div className="text-xs">
-                    {new Date(person.ultimaRequisicao).toLocaleString()}
-                  </div>
+
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-6'>
+          {locationUser.map((person, index) => (
+            <div key={index} className="flex w-full">
+              <div className="space-y-1 bg-gray-800 p-3 rounded-md w-full text-start">
+                <div className="font-bold">{person.name}</div>
+                <div>Lat: {person.latitude}</div>
+                <div>Lng: {person.longitude}</div>
+                <div className="flex justify-start items-center gap-2">
+                  <span className={`h-3 w-3 rounded-full ${person.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`} />
+                  {person.status}
+                </div>
+                <div className="text-xs">
+                  {new Date(person.ultimaRequisicao).toLocaleString()}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
 
         <Map
           location={locationUser}
