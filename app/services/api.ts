@@ -3,5 +3,5 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: 'https://rastreador-f9849afda432.herokuapp.com',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });

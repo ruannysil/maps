@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import { getAllLocations } from './services/locationService';
 import Map from './_components/Map';
+import { api } from './services/api';
 
 export interface LocationUser {
   id: number;
@@ -43,20 +44,13 @@ type MapStyle = keyof typeof tileLayers;
 export default function Home() {
   const [mapView, setMapView] = useState<MapStyle>('default')
   const [locationUser, setLocationUser] = useState<LocationUser[]>([]);
-
-  useEffect(() => {
-    const savedStyle = localStorage.getItem('mapStyle') as MapStyle | null;
-    if (savedStyle && tileLayers[savedStyle]) {
-      setMapView(savedStyle);
-    }
-  }, [])
-
+  
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const L = require('leaflet');
-
+      
       delete L.Icon.Default.prototype._getIconUrl;
-
+      
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -64,9 +58,13 @@ export default function Home() {
       });
     }
   }, []);
-
-
-
+  
+  useEffect(() => {
+    const savedStyle = localStorage.getItem('mapStyle') as MapStyle | null;
+    if (savedStyle && tileLayers[savedStyle]) {
+      setMapView(savedStyle);
+    }
+  }, [])
 
   const fetchLocations = async () => {
     try {
