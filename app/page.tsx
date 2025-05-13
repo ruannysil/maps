@@ -2,10 +2,8 @@
 
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
-import { getAllLocations, postLocation } from './services/locationService';
-import toast from 'react-hot-toast';
+import { getAllLocations } from './services/locationService';
 import Map from './_components/Map';
-import axios from 'axios';
 
 export interface LocationUser {
   id: number;
