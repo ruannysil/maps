@@ -71,6 +71,7 @@ export default function Home() {
   const fetchLocations = async () => {
     try {
       const data = await getAllLocations();
+      console.log("Dados recebidos:", data);
       if (Array.isArray(data)) {
         setLocationUser(data);
       } else if (data) {
@@ -85,7 +86,15 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       fetchLocations();
     }
+    const interval = setInterval(() => {
+      console.log("Buscando localizações...");
+      fetchLocations();
+    }, 10000);
+    return () => clearInterval(interval);
   }, []);
+
+  console.log("informaoce atualizada", locationUser)
+
 
 
   return (
