@@ -44,13 +44,14 @@ type MapStyle = keyof typeof tileLayers;
 export default function Home() {
   const [mapView, setMapView] = useState<MapStyle>('default')
   const [locationUser, setLocationUser] = useState<LocationUser[]>([]);
-  
+
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const L = require('leaflet');
-      
+
       delete L.Icon.Default.prototype._getIconUrl;
-      
+
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -58,7 +59,8 @@ export default function Home() {
       });
     }
   }, []);
-  
+
+  // Alterar cores do map
   useEffect(() => {
     const savedStyle = localStorage.getItem('mapStyle') as MapStyle | null;
     if (savedStyle && tileLayers[savedStyle]) {
@@ -85,20 +87,15 @@ export default function Home() {
     }
   }, []);
 
-  console.log('informcaoes:', locationUser)
 
   return (
     <div className="flex-1 max-w-6xl items-center justify-center mx-auto px-4">
 
       <div className="text-center ">
-
-
-
-
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-6'>
           {locationUser.map((person, index) => (
             <div key={index} className="flex w-full">
-              <div className="space-y-1 bg-gray-800 p-3 rounded-md w-full text-start">
+              <div className={`space-y-1 bg-gray-800 p-3 shadow-lg ${person.status === 'online' ? "shadow-green-500/50" : "shadow-red-500/50"} rounded-md w-full text-start`}>
                 <div className="font-bold">{person.name}</div>
                 <div>Lat: {person.latitude}</div>
                 <div>Lng: {person.longitude}</div>
